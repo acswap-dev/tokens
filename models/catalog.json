@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-10-19T05:14:43.688Z",
+  "models": [
+    {
+      "id": "bsc-testnet-mint-v2",
+      "category": "participation",
+      "name": "Mint 线性参与模型",
+      "version": "2.0.0",
+      "description": "以计划发射价为基准，参与数量倍率按募集进度从 x 线性变化至 y，单笔按区间平均倍率计算。参与期间记录领取权，成功后领取预铸代币；可配置主动退出或限时软顶。首次加池允许单边 WBNB 注入及 sync，额外注入提高实际加池价，订单数量不变。",
+      "chainId": 97,
+      "address": "0x8f43e8dfb506e69e77c39ed9057383167de0bb0b",
+      "builtin": true,
+      "adapter": "mint-v1",
+      "features": [
+        "线性数量倍率",
+        "成功后按订单领取",
+        "可选退出或限时软顶",
+        "单边募集币注入兼容",
+        "初始 LP 锁定"
+      ],
+      "registrations": [
+        {
+          "factory": "0x9EbC612c4f46f65E7A869F77D05bd972Feac8e6f",
+          "id": "1"
+        }
+      ]
+    },
+    {
+      "id": "bsc-testnet-basic-vault-v1",
+      "category": "vault",
+      "name": "BasicVault 基础金库",
+      "version": "1.0.0",
+      "description": "管理交易税及持币份额，支持营销、销毁、流动性回流和持币分红。税收兑换为募集币后收取 20% 平台份额，其余按项目配置分配；奖励币可与募集币相同，异种奖励币需有效兑换路径。每个项目创建独立金库实例，创建时固定绑定。",
+      "chainId": 97,
+      "address": "0xa597cde436c759dc1fb6b1b9ea55e834a58efa78",
+      "builtin": true,
+      "adapter": "basic-vault-v1",
+      "features": [
+        "交易税分配",
+        "营销与销毁",
+        "流动性回流并锁定 LP",
+        "持币分红",
+        "独立项目金库"
+      ],
+      "registrations": [
+        {
+          "factory": "0x9EbC612c4f46f65E7A869F77D05bd972Feac8e6f",
+          "id": "1"
+        }
+      ]
+    }
+  ]
+}
