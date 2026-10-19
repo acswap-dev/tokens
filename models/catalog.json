@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-19T05:59:09.702Z",
+  "updatedAt": "2026-10-19T09:39:05.053Z",
   "models": [
     {
       "id": "bsc-testnet-mint-v2",
@@ -24,7 +24,44 @@
           "factory": "0x899075AC1726630DF3D20047496E2C6893900ECe",
           "id": "1"
         }
-      ]
+      ],
+      "configuration": {
+        "version": 1,
+        "sections": [
+          {
+            "title": "募集与加池",
+            "fields": [
+              "targetRaise",
+              "targetPrice",
+              "lpRatio",
+              "projectRecipient"
+            ]
+          },
+          {
+            "title": "参与数量倍率",
+            "fields": [
+              "startWeight",
+              "endWeight"
+            ]
+          },
+          {
+            "title": "退出与截止规则",
+            "fields": [
+              "allowExit",
+              "deadline",
+              "softCap",
+              "openOnFull"
+            ]
+          },
+          {
+            "title": "参与限制",
+            "fields": [
+              "minMint",
+              "maxPerWalletPct"
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "bsc-testnet-basic-vault-v1",
@@ -48,7 +85,42 @@
           "factory": "0x899075AC1726630DF3D20047496E2C6893900ECe",
           "id": "1"
         }
-      ]
+      ],
+      "configuration": {
+        "version": 1,
+        "sections": [
+          {
+            "title": "税收分配",
+            "description": "四项合计必须为 100%。这是税币处理比例，不是募集本金分配。",
+            "fields": [
+              "marketing",
+              "burn",
+              "liquidity",
+              "dividend",
+              "marketingRecipient"
+            ]
+          },
+          {
+            "title": "分红配置",
+            "fields": [
+              "customReward",
+              "rewardToken",
+              "rewardPath",
+              "minHold",
+              "minDistribution",
+              "claimInterval"
+            ]
+          },
+          {
+            "title": "自动处理",
+            "fields": [
+              "slippage",
+              "swapThreshold",
+              "maxSwapAmount"
+            ]
+          }
+        ]
+      }
     }
   ]
 }
