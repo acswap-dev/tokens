@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-19T11:05:09.119Z",
+  "updatedAt": "2026-10-19T13:57:24.218Z",
   "models": [
     {
       "id": "bsc-testnet-mint-v2",
       "category": "participation",
       "name": "Mint 线性参与模型",
-      "version": "2.0.0",
-      "description": "以计划发射价为基准，参与数量倍率按募集进度从 x 线性变化至 y，单笔按区间平均倍率计算。参与期间记录领取权，成功后领取预铸代币；可配置主动退出或限时软顶。首次加池允许单边 WBNB 注入及 sync，额外注入提高实际加池价，订单数量不变。",
+      "version": "3.0.0",
+      "description": "以计划发射价为基准，参与数量倍率按募集进度从 x 线性变化至 y，单笔按区间平均倍率计算。参与期间记录领取权，成功后领取预铸代币；可配置主动退出或限时软顶。首次加池允许单边 WBNB 注入及 sync，额外注入提高实际加池价，订单数量不变。 募集模型与金库独立，可搭配基础金库或燃烧封顶金库。",
       "chainId": 97,
-      "address": "0x8f43e8dfb506e69e77c39ed9057383167de0bb0b",
+      "address": "0x85bea4666160c563c85d980e6c18923080e4d340",
       "builtin": true,
-      "adapter": "mint-v1",
+      "adapter": "mint-address-v1",
       "features": [
         "线性数量倍率",
         "成功后按订单领取",
@@ -19,12 +19,7 @@
         "单边募集币注入兼容",
         "初始 LP 锁定"
       ],
-      "registrations": [
-        {
-          "factory": "0x899075AC1726630DF3D20047496E2C6893900ECe",
-          "id": "1"
-        }
-      ],
+      "registrations": [],
       "configuration": {
         "version": 1,
         "sections": [
@@ -67,12 +62,12 @@
       "id": "bsc-testnet-basic-vault-v1",
       "category": "vault",
       "name": "BasicVault 基础金库",
-      "version": "1.0.0",
-      "description": "管理交易税及持币份额，支持营销、销毁、流动性回流和持币分红。税收兑换为募集币后收取 20% 平台份额，其余按项目配置分配；奖励币可与募集币相同，异种奖励币需有效兑换路径。每个项目创建独立金库实例，创建时固定绑定。",
+      "version": "2.0.0",
+      "description": "管理交易税及持币份额，支持营销、销毁、流动性回流和持币分红。税收兑换为募集币后收取 20% 平台份额，其余按项目配置分配；奖励币可与募集币相同，异种奖励币需有效兑换路径。每个项目创建独立金库实例，创建时固定绑定。 可独立搭配 Mint 或 Pump 募集模型，奖励收款地址由金库单独配置。",
       "chainId": 97,
-      "address": "0xa597cde436c759dc1fb6b1b9ea55e834a58efa78",
+      "address": "0x634b67fb12c2de2ba81dcccb320d4cf76bfddba1",
       "builtin": true,
-      "adapter": "basic-vault-v1",
+      "adapter": "basic-vault-model-v1",
       "features": [
         "交易税分配",
         "营销与销毁",
@@ -80,12 +75,7 @@
         "持币分红",
         "独立项目金库"
       ],
-      "registrations": [
-        {
-          "factory": "0x899075AC1726630DF3D20047496E2C6893900ECe",
-          "id": "1"
-        }
-      ],
+      "registrations": [],
       "configuration": {
         "version": 1,
         "sections": [
@@ -118,6 +108,12 @@
               "swapThreshold",
               "maxSwapAmount"
             ]
+          },
+          {
+            "title": "金库独立收款",
+            "fields": [
+              "vaultProjectRecipient"
+            ]
           }
         ]
       }
@@ -128,7 +124,7 @@
       "name": "Pump 曲线参与模型",
       "address": "0xdd80d6e7a85d157ffc13f400e5e8cef4df34cf98",
       "adapter": "pump-curve-v1",
-      "description": "以虚拟储备形成恒定乘积曲线。毕业前买卖领取权，达到净储备目标后由任何人触发毕业，加池并锁定 LP，毕业后领取实际代币。首次无 LP 且项目币余额和储备均为零时，允许单边募集币捐赠及 sync；额外资金提高首次池价。当前网站组合为 PumpCurve + 燃烧封顶金库。",
+      "description": "以虚拟储备形成恒定乘积曲线。毕业前买卖领取权，达到净储备目标后由任何人触发毕业，加池并锁定 LP，毕业后领取实际代币。首次无 LP 且项目币余额和储备均为零时，允许单边募集币捐赠及 sync；额外资金提高首次池价。可独立搭配基础金库或燃烧封顶金库。",
       "features": [
         "曲线买入与卖出",
         "净储备目标毕业",
@@ -169,7 +165,7 @@
       "name": "燃烧封顶分红金库",
       "address": "0x1790271052b7f16b157f533d6ebdd2310cfb713d",
       "adapter": "burn-revenue-v1",
-      "description": "提交项目币，先拆分两级即时邀请奖励，再销毁剩余数量建立份额。每批按有效 TWAP 均价折算价值乘倍率，独立冻结累计收益上限；已分配未领计入上限，到顶退出。税币实际兑换收入 20% 归平台，其余分配；无份额收入暂存。没有保证收益。60 秒观测及预填参数仅供测试。当前网站组合为 PumpCurve + 本金库。",
+      "description": "提交项目币，先拆分两级即时邀请奖励，再销毁剩余数量建立份额。每批按有效 TWAP 均价折算价值乘倍率，独立冻结累计收益上限；已分配未领计入上限，到顶退出。税币实际兑换收入 20% 归平台，其余分配；无份额收入暂存。没有保证收益。60 秒观测及预填参数仅供测试。 可独立搭配 Mint 或 Pump 募集模型，上池后按本模型规则燃烧并分配收入。",
       "features": [
         "实际销毁建立份额",
         "两级即时项目币奖励",
