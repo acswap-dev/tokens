@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-19T09:39:05.053Z",
+  "updatedAt": "2026-10-19T11:05:09.119Z",
   "models": [
     {
       "id": "bsc-testnet-mint-v2",
@@ -117,6 +117,99 @@
               "slippage",
               "swapThreshold",
               "maxSwapAmount"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "bsc-testnet-pump-curve-v1",
+      "category": "participation",
+      "name": "Pump 曲线参与模型",
+      "address": "0xdd80d6e7a85d157ffc13f400e5e8cef4df34cf98",
+      "adapter": "pump-curve-v1",
+      "description": "以虚拟储备形成恒定乘积曲线。毕业前买卖领取权，达到净储备目标后由任何人触发毕业，加池并锁定 LP，毕业后领取实际代币。首次无 LP 且项目币余额和储备均为零时，允许单边募集币捐赠及 sync；额外资金提高首次池价。当前网站组合为 PumpCurve + 燃烧封顶金库。",
+      "features": [
+        "曲线买入与卖出",
+        "净储备目标毕业",
+        "领取权与代币分离",
+        "单边募集币捐赠兼容",
+        "初始 LP 永久锁定"
+      ],
+      "version": "1.0.0",
+      "chainId": 97,
+      "builtin": true,
+      "registrations": [],
+      "configuration": {
+        "version": 1,
+        "sections": [
+          {
+            "title": "曲线与毕业",
+            "fields": [
+              "graduationTarget",
+              "virtualBase",
+              "virtualTokens",
+              "minBuy"
+            ]
+          },
+          {
+            "title": "前期费用",
+            "fields": [
+              "buyFee",
+              "sellFee",
+              "graduationFee"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "bsc-testnet-burn-revenue-v1",
+      "category": "vault",
+      "name": "燃烧封顶分红金库",
+      "address": "0x1790271052b7f16b157f533d6ebdd2310cfb713d",
+      "adapter": "burn-revenue-v1",
+      "description": "提交项目币，先拆分两级即时邀请奖励，再销毁剩余数量建立份额。每批按有效 TWAP 均价折算价值乘倍率，独立冻结累计收益上限；已分配未领计入上限，到顶退出。税币实际兑换收入 20% 归平台，其余分配；无份额收入暂存。没有保证收益。60 秒观测及预填参数仅供测试。当前网站组合为 PumpCurve + 本金库。",
+      "features": [
+        "实际销毁建立份额",
+        "两级即时项目币奖励",
+        "每批独立累计收益封顶",
+        "有效均价与流动性校验",
+        "到顶自动退出",
+        "分批处理收入"
+      ],
+      "version": "1.0.0",
+      "chainId": 97,
+      "builtin": true,
+      "registrations": [],
+      "configuration": {
+        "version": 1,
+        "sections": [
+          {
+            "title": "燃烧与两级邀请",
+            "fields": [
+              "level1",
+              "level2",
+              "multiple",
+              "minimumSubmitted",
+              "maximumRewardCap"
+            ]
+          },
+          {
+            "title": "燃烧价值报价",
+            "fields": [
+              "oracleWindow",
+              "oracleMaxAge",
+              "minimumBaseLiquidity"
+            ]
+          },
+          {
+            "title": "税收兑换",
+            "description": "本模型将兑换所得的 20% 计作平台份额，其余作为营销净收入分给未到顶燃烧份额；无份额收入及尾差隔离保留。",
+            "fields": [
+              "swapThreshold",
+              "maxSwapAmount",
+              "slippage"
             ]
           }
         ]
