@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-19T05:14:43.688Z",
+  "updatedAt": "2026-10-19T05:59:09.702Z",
   "models": [
     {
       "id": "bsc-testnet-mint-v2",
@@ -21,7 +21,7 @@
       ],
       "registrations": [
         {
-          "factory": "0x9EbC612c4f46f65E7A869F77D05bd972Feac8e6f",
+          "factory": "0x899075AC1726630DF3D20047496E2C6893900ECe",
           "id": "1"
         }
       ]
@@ -45,7 +45,7 @@
       ],
       "registrations": [
         {
-          "factory": "0x9EbC612c4f46f65E7A869F77D05bd972Feac8e6f",
+          "factory": "0x899075AC1726630DF3D20047496E2C6893900ECe",
           "id": "1"
         }
       ]
