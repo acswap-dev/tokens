@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "bsc-testnet-mint-v2",
+  "category": "participation",
+  "address": "0x85BEA4666160c563C85D980e6C18923080E4d340",
+  "builtin": true,
+  "name": "Mint 线性参与模型",
+  "version": "3.0.0",
+  "description": "以计划发射价为基准，参与数量倍率按募集进度从 x 线性变化至 y，单笔按区间平均倍率计算。参与期间记录领取权，成功后领取预铸代币；可配置主动退出或限时软顶。首次加池允许单边 WBNB 注入及 sync，额外注入提高实际加池价，订单数量不变。 募集模型与金库独立，可搭配基础金库或燃烧封顶金库。",
+  "adapter": "mint-address-v1",
+  "features": [
+    "线性数量倍率",
+    "成功后按订单领取",
+    "可选退出或限时软顶",
+    "单边募集币注入兼容",
+    "初始 LP 锁定"
+  ],
+  "registrations": [],
+  "configuration": {
+    "version": 1,
+    "sections": [
+      {
+        "title": "募集与加池",
+        "fields": [
+          "targetRaise",
+          "targetPrice",
+          "lpRatio",
+          "projectRecipient"
+        ]
+      },
+      {
+        "title": "参与数量倍率",
+        "fields": [
+          "startWeight",
+          "endWeight"
+        ]
+      },
+      {
+        "title": "退出与截止规则",
+        "fields": [
+          "allowExit",
+          "deadline",
+          "softCap",
+          "openOnFull"
+        ]
+      },
+      {
+        "title": "参与限制",
+        "fields": [
+          "minMint",
+          "maxPerWalletPct"
+        ]
+      }
+    ]
+  }
+}

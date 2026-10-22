@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "bsc-testnet-basic-vault-v1",
+  "category": "vault",
+  "address": "0x634B67fB12c2dE2Ba81dCccb320D4cf76BfDdBa1",
+  "builtin": true,
+  "name": "BasicVault 基础金库",
+  "version": "2.0.0",
+  "description": "管理交易税及持币份额，支持营销、销毁、流动性回流和持币分红。税收兑换为募集币后收取 20% 平台份额，其余按项目配置分配；奖励币可与募集币相同，异种奖励币需有效兑换路径。每个项目创建独立金库实例，创建时固定绑定。 可独立搭配 Mint 或 Pump 募集模型，奖励收款地址由金库单独配置。",
+  "adapter": "basic-vault-model-v1",
+  "features": [
+    "交易税分配",
+    "营销与销毁",
+    "流动性回流并锁定 LP",
+    "持币分红",
+    "独立项目金库"
+  ],
+  "registrations": [],
+  "configuration": {
+    "version": 1,
+    "sections": [
+      {
+        "title": "税收分配",
+        "description": "四项合计必须为 100%。这是税币处理比例，不是募集本金分配。",
+        "fields": [
+          "marketing",
+          "burn",
+          "liquidity",
+          "dividend",
+          "marketingRecipient"
+        ]
+      },
+      {
+        "title": "分红配置",
+        "fields": [
+          "customReward",
+          "rewardToken",
+          "rewardPath",
+          "minHold",
+          "minDistribution",
+          "claimInterval"
+        ]
+      },
+      {
+        "title": "自动处理",
+        "fields": [
+          "slippage",
+          "swapThreshold",
+          "maxSwapAmount"
+        ]
+      },
+      {
+        "title": "金库独立收款",
+        "fields": [
+          "vaultProjectRecipient"
+        ]
+      }
+    ]
+  }
+}

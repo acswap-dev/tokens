@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "bsc-testnet-burn-revenue-v1",
+  "category": "vault",
+  "address": "0x1790271052b7F16B157f533D6EbDD2310cFB713d",
+  "builtin": true,
+  "name": "燃烧封顶分红金库",
+  "version": "1.0.0",
+  "description": "提交项目币，先拆分两级即时邀请奖励，再销毁剩余数量建立份额。每批按有效 TWAP 均价折算价值乘倍率，独立冻结累计收益上限；已分配未领计入上限，到顶退出。税币实际兑换收入 20% 归平台，其余分配；无份额收入暂存。没有保证收益。60 秒观测及预填参数仅供测试。 可独立搭配 Mint 或 Pump 募集模型，上池后按本模型规则燃烧并分配收入。",
+  "adapter": "burn-revenue-v1",
+  "features": [
+    "实际销毁建立份额",
+    "两级即时项目币奖励",
+    "每批独立累计收益封顶",
+    "有效均价与流动性校验",
+    "到顶自动退出",
+    "分批处理收入"
+  ],
+  "registrations": [],
+  "configuration": {
+    "version": 1,
+    "sections": [
+      {
+        "title": "燃烧与两级邀请",
+        "fields": [
+          "level1",
+          "level2",
+          "multiple",
+          "minimumSubmitted",
+          "maximumRewardCap"
+        ]
+      },
+      {
+        "title": "燃烧价值报价",
+        "fields": [
+          "oracleWindow",
+          "oracleMaxAge",
+          "minimumBaseLiquidity"
+        ]
+      },
+      {
+        "title": "税收兑换",
+        "description": "本模型将兑换所得的 20% 计作平台份额，其余作为营销净收入分给未到顶燃烧份额；无份额收入及尾差隔离保留。",
+        "fields": [
+          "swapThreshold",
+          "maxSwapAmount",
+          "slippage"
+        ]
+      }
+    ]
+  }
+}

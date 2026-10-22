@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "bsc-testnet-pump-curve-v1",
+  "category": "participation",
+  "address": "0xdd80d6E7A85D157FfC13F400e5E8CeF4dF34cf98",
+  "builtin": true,
+  "name": "Pump 曲线参与模型",
+  "version": "1.0.0",
+  "description": "以虚拟储备形成恒定乘积曲线。毕业前买卖领取权，达到净储备目标后由任何人触发毕业，加池并锁定 LP，毕业后领取实际代币。首次无 LP 且项目币余额和储备均为零时，允许单边募集币捐赠及 sync；额外资金提高首次池价。可独立搭配基础金库或燃烧封顶金库。",
+  "adapter": "pump-curve-v1",
+  "features": [
+    "曲线买入与卖出",
+    "净储备目标毕业",
+    "领取权与代币分离",
+    "单边募集币捐赠兼容",
+    "初始 LP 永久锁定"
+  ],
+  "registrations": [],
+  "configuration": {
+    "version": 1,
+    "sections": [
+      {
+        "title": "曲线与毕业",
+        "fields": [
+          "graduationTarget",
+          "virtualBase",
+          "virtualTokens",
+          "minBuy"
+        ]
+      },
+      {
+        "title": "前期费用",
+        "fields": [
+          "buyFee",
+          "sellFee",
+          "graduationFee"
+        ]
+      }
+    ]
+  }
+}
