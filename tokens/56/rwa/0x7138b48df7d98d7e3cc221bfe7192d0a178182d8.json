@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "bsc-56-spyb",
+  "kind": "erc20",
+  "address": "0x7138b48df7D98D7e3cc221BfE7192D0a178182D8",
+  "name": "SPY · S&P 500 ETF",
+  "symbol": "SPYB",
+  "description": ""
+}

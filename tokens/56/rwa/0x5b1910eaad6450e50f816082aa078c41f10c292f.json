@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "bsc-56-tslab",
+  "kind": "erc20",
+  "address": "0x5b1910eAaD6450E50f816082Aa078C41F10C292f",
+  "name": "Tesla",
+  "symbol": "TSLAB",
+  "description": ""
+}

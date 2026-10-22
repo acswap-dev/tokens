@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "bsc-56-usdt",
+  "kind": "erc20",
+  "address": "0x55d398326f99059fF775485246999027B3197955",
+  "name": "Binance-Peg Tether USD",
+  "symbol": "USDT",
+  "description": ""
+}

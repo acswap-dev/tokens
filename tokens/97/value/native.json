@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "bsc-97-bnb",
+  "kind": "native",
+  "address": null,
+  "name": "BNB（测试网）",
+  "symbol": "BNB",
+  "description": "测试网原生币，仅用于测试。"
+}
