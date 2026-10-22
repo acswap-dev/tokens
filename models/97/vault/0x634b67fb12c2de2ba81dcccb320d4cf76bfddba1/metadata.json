@@ -865,6 +865,33 @@
           ]
         }
       ]
+    },
+    "assets": {
+      "rewardToken": {
+        "op": "if",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "field": "customReward"
+              },
+              "true"
+            ]
+          },
+          {
+            "op": "address",
+            "args": [
+              {
+                "field": "rewardToken"
+              }
+            ]
+          },
+          {
+            "context": "baseToken"
+          }
+        ]
+      }
     }
   }
 }

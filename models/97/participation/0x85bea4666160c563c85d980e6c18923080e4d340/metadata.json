@@ -1064,7 +1064,13 @@
         "softCap": "softCap",
         "allowExit": "allowExit",
         "deadline": "deadline"
-      }
+      },
+      "controls": [
+        "targetRaise",
+        "targetPrice",
+        "startWeight",
+        "endWeight"
+      ]
     }
   }
 }

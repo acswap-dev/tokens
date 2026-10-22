@@ -661,7 +661,13 @@
         "buyFee": "buyFee",
         "graduationFee": "graduationFee",
         "minimum": "minBuy"
-      }
+      },
+      "controls": [
+        "graduationTarget",
+        "virtualBase",
+        "virtualTokens",
+        "buyFee"
+      ]
     }
   }
 }
