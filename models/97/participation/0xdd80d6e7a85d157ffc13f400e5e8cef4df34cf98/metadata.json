@@ -123,6 +123,11 @@
         ]
       }
     ],
+    "summary": [
+      "graduationTarget",
+      "buyFee",
+      "sellFee"
+    ],
     "rules": [
       {
         "field": "virtualBase",

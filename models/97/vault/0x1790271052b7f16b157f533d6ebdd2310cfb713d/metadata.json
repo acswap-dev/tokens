@@ -86,23 +86,27 @@
       {
         "key": "oracleWindow",
         "label": "均价观测窗口",
-        "ui": "number",
+        "ui": "slider",
         "default": "60",
         "unit": "秒",
         "hint": "至少 60 秒；60 秒仅为测试示例，不代表正式安全参数。",
         "required": true,
         "decimals": 0,
-        "min": "60"
+        "min": "60",
+        "max": "86400",
+        "step": "60"
       },
       {
         "key": "oracleMaxAge",
         "label": "价格最长有效时间",
-        "ui": "number",
+        "ui": "slider",
         "default": "3600",
         "unit": "秒",
         "required": true,
         "decimals": 0,
-        "min": "0"
+        "min": "60",
+        "max": "604800",
+        "step": "60"
       },
       {
         "key": "minimumBaseLiquidity",
@@ -175,6 +179,11 @@
           "slippage"
         ]
       }
+    ],
+    "summary": [
+      "level1",
+      "level2",
+      "multiple"
     ],
     "rules": [
       {

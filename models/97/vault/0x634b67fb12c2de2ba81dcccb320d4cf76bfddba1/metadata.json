@@ -144,12 +144,14 @@
       {
         "key": "claimInterval",
         "label": "领取间隔",
-        "ui": "number",
+        "ui": "slider",
         "default": "1800",
         "unit": "秒",
         "required": true,
         "decimals": 0,
-        "min": "0"
+        "min": "0",
+        "max": "31536000",
+        "step": "60"
       },
       {
         "key": "slippage",
@@ -230,6 +232,12 @@
           "vaultProjectRecipient"
         ]
       }
+    ],
+    "summary": [
+      "marketing",
+      "burn",
+      "liquidity",
+      "dividend"
     ],
     "rules": [
       {

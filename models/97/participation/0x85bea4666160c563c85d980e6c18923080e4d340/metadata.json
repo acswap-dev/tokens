@@ -211,6 +211,11 @@
         ]
       }
     ],
+    "summary": [
+      "targetRaise",
+      "startWeight",
+      "endWeight"
+    ],
     "rules": [
       {
         "field": "targetRaise",
