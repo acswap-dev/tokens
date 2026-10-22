@@ -18,7 +18,135 @@
   ],
   "registrations": [],
   "configuration": {
-    "version": 1,
+    "version": 2,
+    "contract": {
+      "apiVersion": 1,
+      "configSchema": "0xe422c8aa89c5f20ca3f4061c38b339e9ba18a5b52ac1ac62f8d625ffea010bd4",
+      "marker": 3
+    },
+    "fields": [
+      {
+        "key": "level1",
+        "label": "一级即时邀请奖励",
+        "ui": "slider",
+        "default": "10",
+        "unit": "%",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "99.99",
+        "step": "0.01"
+      },
+      {
+        "key": "level2",
+        "label": "二级即时邀请奖励",
+        "ui": "slider",
+        "default": "5",
+        "unit": "%",
+        "hint": "奖励来自本次提交的项目币，剩余部分才销毁并增加份额；缺失上级的部分也销毁。",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "99.99",
+        "step": "0.01"
+      },
+      {
+        "key": "multiple",
+        "label": "累计收益上限倍率",
+        "ui": "slider",
+        "default": "3",
+        "unit": "倍",
+        "hint": "每批实际销毁量按当时均价折算价值，再乘该倍率。已分配未领取也计入上限。",
+        "required": true,
+        "decimals": 4,
+        "min": "0.0001",
+        "max": "100",
+        "step": "0.0001"
+      },
+      {
+        "key": "minimumSubmitted",
+        "label": "最低提交数量",
+        "ui": "number",
+        "default": "1",
+        "unit": "token",
+        "required": true,
+        "decimals": "tokenDecimals",
+        "min": "0"
+      },
+      {
+        "key": "maximumRewardCap",
+        "label": "单批收益上限限额",
+        "ui": "number",
+        "default": "1",
+        "unit": "base",
+        "required": true,
+        "decimals": "baseDecimals",
+        "min": "0"
+      },
+      {
+        "key": "oracleWindow",
+        "label": "均价观测窗口",
+        "ui": "number",
+        "default": "60",
+        "unit": "秒",
+        "hint": "至少 60 秒；60 秒仅为测试示例，不代表正式安全参数。",
+        "required": true,
+        "decimals": 0,
+        "min": "60"
+      },
+      {
+        "key": "oracleMaxAge",
+        "label": "价格最长有效时间",
+        "ui": "number",
+        "default": "3600",
+        "unit": "秒",
+        "required": true,
+        "decimals": 0,
+        "min": "0"
+      },
+      {
+        "key": "minimumBaseLiquidity",
+        "label": "报价所需最低募集币流动性",
+        "ui": "number",
+        "default": "0.00001",
+        "unit": "base",
+        "required": true,
+        "decimals": "baseDecimals",
+        "min": "0"
+      },
+      {
+        "key": "swapThreshold",
+        "label": "税币处理门槛",
+        "ui": "number",
+        "default": "1",
+        "unit": "token",
+        "required": true,
+        "decimals": "tokenDecimals",
+        "min": "0"
+      },
+      {
+        "key": "maxSwapAmount",
+        "label": "单次最大处理量",
+        "ui": "number",
+        "default": "1000",
+        "unit": "token",
+        "required": true,
+        "decimals": "tokenDecimals",
+        "min": "0"
+      },
+      {
+        "key": "slippage",
+        "label": "税币兑换价格偏差上限",
+        "ui": "slider",
+        "default": "20",
+        "unit": "%",
+        "required": true,
+        "decimals": 2,
+        "min": "0.01",
+        "max": "99.99",
+        "step": "0.01"
+      }
+    ],
     "sections": [
       {
         "title": "燃烧与两级邀请",
@@ -47,6 +175,492 @@
           "slippage"
         ]
       }
-    ]
+    ],
+    "rules": [
+      {
+        "field": "level2",
+        "message": "两级邀请奖励合计必须小于 100%",
+        "assert": {
+          "op": "lt",
+          "args": [
+            {
+              "op": "add",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "level1"
+                    },
+                    2
+                  ]
+                },
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "level2"
+                    },
+                    2
+                  ]
+                }
+              ]
+            },
+            10000
+          ]
+        }
+      },
+      {
+        "field": "oracleWindow",
+        "message": "均价窗口须为 60～86400 秒",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gte",
+              "args": [
+                {
+                  "op": "integer",
+                  "args": [
+                    {
+                      "field": "oracleWindow"
+                    }
+                  ]
+                },
+                60
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "integer",
+                  "args": [
+                    {
+                      "field": "oracleWindow"
+                    }
+                  ]
+                },
+                86400
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "oracleMaxAge",
+        "message": "价格有效期须不小于窗口且不超过 7 天",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gte",
+              "args": [
+                {
+                  "op": "integer",
+                  "args": [
+                    {
+                      "field": "oracleMaxAge"
+                    }
+                  ]
+                },
+                {
+                  "op": "integer",
+                  "args": [
+                    {
+                      "field": "oracleWindow"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "integer",
+                  "args": [
+                    {
+                      "field": "oracleMaxAge"
+                    }
+                  ]
+                },
+                604800
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "minimumBaseLiquidity",
+        "message": "金额须大于 0 且在 uint112 范围内",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gt",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "minimumBaseLiquidity"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "minimumBaseLiquidity"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                "5192296858534827628530496329220095"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "minimumSubmitted",
+        "message": "金额须大于 0 且在 uint112 范围内",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gt",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "minimumSubmitted"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "minimumSubmitted"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                },
+                "5192296858534827628530496329220095"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "maximumRewardCap",
+        "message": "金额须大于 0 且在 uint112 范围内",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gt",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "maximumRewardCap"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "maximumRewardCap"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                "5192296858534827628530496329220095"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "swapThreshold",
+        "message": "处理门槛须大于 0",
+        "assert": {
+          "op": "gt",
+          "args": [
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "swapThreshold"
+                },
+                {
+                  "context": "tokenDecimals"
+                }
+              ]
+            },
+            0
+          ]
+        }
+      },
+      {
+        "field": "maxSwapAmount",
+        "message": "单次最大处理量须不低于门槛且在 uint112 范围内",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "maxSwapAmount"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                },
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "swapThreshold"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "maxSwapAmount"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                },
+                "5192296858534827628530496329220095"
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "encoding": {
+      "parameters": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "uint16",
+              "name": "level1Bps"
+            },
+            {
+              "type": "uint16",
+              "name": "level2Bps"
+            },
+            {
+              "type": "uint32",
+              "name": "multipleBps"
+            },
+            {
+              "type": "uint32",
+              "name": "oracleWindow"
+            },
+            {
+              "type": "uint32",
+              "name": "oracleMaxAge"
+            },
+            {
+              "type": "uint112",
+              "name": "minimumBaseLiquidity"
+            },
+            {
+              "type": "uint112",
+              "name": "minimumSubmitted"
+            },
+            {
+              "type": "uint112",
+              "name": "maximumRewardCap"
+            },
+            {
+              "type": "uint112",
+              "name": "swapThreshold"
+            },
+            {
+              "type": "uint112",
+              "name": "maxSwapAmount"
+            },
+            {
+              "type": "uint16",
+              "name": "slippageBps"
+            }
+          ]
+        }
+      ],
+      "values": [
+        {
+          "op": "tuple",
+          "args": [
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "level1"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "level2"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "multiple"
+                },
+                4
+              ]
+            },
+            {
+              "op": "integer",
+              "args": [
+                {
+                  "field": "oracleWindow"
+                }
+              ]
+            },
+            {
+              "op": "integer",
+              "args": [
+                {
+                  "field": "oracleMaxAge"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "minimumBaseLiquidity"
+                },
+                {
+                  "context": "baseDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "minimumSubmitted"
+                },
+                {
+                  "context": "tokenDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "maximumRewardCap"
+                },
+                {
+                  "context": "baseDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "swapThreshold"
+                },
+                {
+                  "context": "tokenDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "maxSwapAmount"
+                },
+                {
+                  "context": "tokenDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "slippage"
+                },
+                2
+              ]
+            }
+          ]
+        }
+      ]
+    }
   }
 }

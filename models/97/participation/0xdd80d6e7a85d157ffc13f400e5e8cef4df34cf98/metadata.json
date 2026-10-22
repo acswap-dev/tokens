@@ -17,7 +17,93 @@
   ],
   "registrations": [],
   "configuration": {
-    "version": 1,
+    "version": 2,
+    "contract": {
+      "apiVersion": 1,
+      "configSchema": "0xe277fcbee7586e0c73ee85d4a8c18baab56794d08af2e137e287e868838b49e9",
+      "marker": 1
+    },
+    "fields": [
+      {
+        "key": "graduationTarget",
+        "label": "净储备毕业目标",
+        "ui": "number",
+        "default": "0.003",
+        "unit": "base",
+        "hint": "扣除曲线买入手续费后的实际净储备，不包含虚拟资金。",
+        "required": true,
+        "decimals": "baseDecimals",
+        "min": "0"
+      },
+      {
+        "key": "virtualBase",
+        "label": "初始虚拟募集币储备",
+        "ui": "number",
+        "default": "0.001",
+        "unit": "base",
+        "required": true,
+        "decimals": "baseDecimals",
+        "min": "0"
+      },
+      {
+        "key": "virtualTokens",
+        "label": "初始虚拟代币储备",
+        "ui": "number",
+        "default": "1000000",
+        "unit": "token",
+        "hint": "不得超过代币供应量；只用于定价，不是额外铸币。",
+        "required": true,
+        "decimals": "tokenDecimals",
+        "min": "0"
+      },
+      {
+        "key": "minBuy",
+        "label": "最低买入金额",
+        "ui": "number",
+        "default": "0.00001",
+        "unit": "base",
+        "required": true,
+        "decimals": "baseDecimals",
+        "min": "0"
+      },
+      {
+        "key": "buyFee",
+        "label": "曲线买入手续费",
+        "ui": "slider",
+        "default": "1",
+        "unit": "%",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "10",
+        "step": "0.01"
+      },
+      {
+        "key": "sellFee",
+        "label": "曲线卖出手续费",
+        "ui": "slider",
+        "default": "1",
+        "unit": "%",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "10",
+        "step": "0.01"
+      },
+      {
+        "key": "graduationFee",
+        "label": "毕业手续费",
+        "ui": "slider",
+        "default": "5",
+        "unit": "%",
+        "hint": "扣费后净储备全部加池，LP 永久锁定；没有额外的项目方本金分款。",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "10",
+        "step": "0.01"
+      }
+    ],
     "sections": [
       {
         "title": "曲线与毕业",
@@ -36,6 +122,541 @@
           "graduationFee"
         ]
       }
-    ]
+    ],
+    "rules": [
+      {
+        "field": "virtualBase",
+        "message": "虚拟募集币储备必须大于 0",
+        "assert": {
+          "op": "gt",
+          "args": [
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "virtualBase"
+                },
+                {
+                  "context": "baseDecimals"
+                }
+              ]
+            },
+            0
+          ]
+        }
+      },
+      {
+        "field": "virtualTokens",
+        "message": "虚拟代币储备须大于 0 且不超过供应量",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gt",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "virtualTokens"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "virtualTokens"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                },
+                {
+                  "context": "supply"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "graduationTarget",
+        "message": "毕业目标须大于 0 且储备不溢出",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gt",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "graduationTarget"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "add",
+                  "args": [
+                    {
+                      "op": "units",
+                      "args": [
+                        {
+                          "field": "virtualBase"
+                        },
+                        {
+                          "context": "baseDecimals"
+                        }
+                      ]
+                    },
+                    {
+                      "op": "units",
+                      "args": [
+                        {
+                          "field": "graduationTarget"
+                        },
+                        {
+                          "context": "baseDecimals"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "5192296858534827628530496329220095"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "minBuy",
+        "message": "最低买入须大于 0 且不超过毕业目标",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gt",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "minBuy"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "minBuy"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "graduationTarget"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "graduationTarget",
+        "message": "计划流动性不足交易所最小要求",
+        "assert": {
+          "op": "gt",
+          "args": [
+            {
+              "op": "mul",
+              "args": [
+                {
+                  "op": "sub",
+                  "args": [
+                    {
+                      "op": "units",
+                      "args": [
+                        {
+                          "field": "graduationTarget"
+                        },
+                        {
+                          "context": "baseDecimals"
+                        }
+                      ]
+                    },
+                    {
+                      "op": "div",
+                      "args": [
+                        {
+                          "op": "mul",
+                          "args": [
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "graduationTarget"
+                                },
+                                {
+                                  "context": "baseDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "graduationFee"
+                                },
+                                2
+                              ]
+                            }
+                          ]
+                        },
+                        10000
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "div",
+                  "args": [
+                    {
+                      "op": "mul",
+                      "args": [
+                        {
+                          "op": "sub",
+                          "args": [
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "graduationTarget"
+                                },
+                                {
+                                  "context": "baseDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "div",
+                              "args": [
+                                {
+                                  "op": "mul",
+                                  "args": [
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "graduationTarget"
+                                        },
+                                        {
+                                          "context": "baseDecimals"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "graduationFee"
+                                        },
+                                        2
+                                      ]
+                                    }
+                                  ]
+                                },
+                                10000
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "sub",
+                          "args": [
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "virtualTokens"
+                                },
+                                {
+                                  "context": "tokenDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "div",
+                              "args": [
+                                {
+                                  "op": "mul",
+                                  "args": [
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "virtualTokens"
+                                        },
+                                        {
+                                          "context": "tokenDecimals"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "graduationTarget"
+                                        },
+                                        {
+                                          "context": "baseDecimals"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "add",
+                                  "args": [
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "virtualBase"
+                                        },
+                                        {
+                                          "context": "baseDecimals"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "graduationTarget"
+                                        },
+                                        {
+                                          "context": "baseDecimals"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "add",
+                      "args": [
+                        {
+                          "op": "units",
+                          "args": [
+                            {
+                              "field": "virtualBase"
+                            },
+                            {
+                              "context": "baseDecimals"
+                            }
+                          ]
+                        },
+                        {
+                          "op": "units",
+                          "args": [
+                            {
+                              "field": "graduationTarget"
+                            },
+                            {
+                              "context": "baseDecimals"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            1000000
+          ]
+        }
+      }
+    ],
+    "encoding": {
+      "parameters": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "uint112",
+              "name": "virtualBase"
+            },
+            {
+              "type": "uint112",
+              "name": "virtualTokens"
+            },
+            {
+              "type": "uint112",
+              "name": "graduationTarget"
+            },
+            {
+              "type": "uint112",
+              "name": "minBuy"
+            },
+            {
+              "type": "uint16",
+              "name": "buyFeeBps"
+            },
+            {
+              "type": "uint16",
+              "name": "sellFeeBps"
+            },
+            {
+              "type": "uint16",
+              "name": "graduationFeeBps"
+            },
+            {
+              "type": "bool",
+              "name": "nativePayment"
+            }
+          ]
+        }
+      ],
+      "values": [
+        {
+          "op": "tuple",
+          "args": [
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "virtualBase"
+                },
+                {
+                  "context": "baseDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "virtualTokens"
+                },
+                {
+                  "context": "tokenDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "graduationTarget"
+                },
+                {
+                  "context": "baseDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "minBuy"
+                },
+                {
+                  "context": "baseDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "buyFee"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "sellFee"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "graduationFee"
+                },
+                2
+              ]
+            },
+            {
+              "context": "nativePayment"
+            }
+          ]
+        }
+      ]
+    },
+    "curve": {
+      "ui": "fundraisingCurve",
+      "strategy": "constant-product-v1",
+      "fields": {
+        "target": "graduationTarget",
+        "virtualBase": "virtualBase",
+        "virtualTokens": "virtualTokens",
+        "buyFee": "buyFee",
+        "graduationFee": "graduationFee",
+        "minimum": "minBuy"
+      }
+    }
   }
 }

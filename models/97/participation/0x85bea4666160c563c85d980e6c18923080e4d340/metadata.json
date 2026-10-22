@@ -17,7 +17,166 @@
   ],
   "registrations": [],
   "configuration": {
-    "version": 1,
+    "version": 2,
+    "contract": {
+      "apiVersion": 1,
+      "configSchema": "0x2aba1ae2fce1f8dd68e4f07525b483a666b8e358e2861fa253029cadfe2bb43f",
+      "marker": 2
+    },
+    "fields": [
+      {
+        "key": "targetRaise",
+        "label": "募集目标",
+        "ui": "number",
+        "default": "0.003",
+        "unit": "base",
+        "required": true,
+        "decimals": "baseDecimals",
+        "min": "0"
+      },
+      {
+        "key": "targetPrice",
+        "label": "计划发射价",
+        "ui": "number",
+        "default": "0.00000001",
+        "unit": "price",
+        "hint": "参与数量倍率与计划加池数量的基准价；额外注入募集币可能提高实际首池价。",
+        "required": true,
+        "decimals": 18,
+        "min": "0"
+      },
+      {
+        "key": "lpRatio",
+        "label": "募集资金加池比例",
+        "ui": "slider",
+        "default": "50",
+        "unit": "%",
+        "hint": "最高 95%；另扣除 5% 成功平台费，其余归项目方。",
+        "required": true,
+        "decimals": 2,
+        "min": "0.01",
+        "max": "95",
+        "step": "0.01"
+      },
+      {
+        "key": "projectRecipient",
+        "label": "项目方收款地址",
+        "ui": "address",
+        "default": "",
+        "hint": "留空使用当前钱包，接收成功后的剩余募集款。",
+        "required": false
+      },
+      {
+        "key": "startWeight",
+        "label": "初始数量倍率",
+        "ui": "slider",
+        "default": "1.5",
+        "unit": "倍",
+        "hint": "1.5 倍表示同样本金获得计划发射价基准数量的 1.5 倍代币。",
+        "required": true,
+        "decimals": 18,
+        "min": "1",
+        "max": "100",
+        "step": "0.01"
+      },
+      {
+        "key": "endWeight",
+        "label": "最终数量倍率",
+        "ui": "slider",
+        "default": "1",
+        "unit": "倍",
+        "hint": "随有效募集进度线性变化，跨区间按积分计算；初始不得小于最终，最终至少 1 倍。",
+        "required": true,
+        "decimals": 18,
+        "min": "1",
+        "max": "100",
+        "step": "0.01"
+      },
+      {
+        "key": "allowExit",
+        "label": "允许中途退出",
+        "ui": "switch",
+        "default": "true",
+        "hint": "开启后不设截止时间，退出退回 90% 本金；关闭则使用限时软顶规则。",
+        "required": true
+      },
+      {
+        "key": "deadline",
+        "label": "募集截止时间",
+        "ui": "datetime",
+        "default": "",
+        "required": true,
+        "when": {
+          "op": "eq",
+          "args": [
+            {
+              "field": "allowExit"
+            },
+            "false"
+          ]
+        }
+      },
+      {
+        "key": "softCap",
+        "label": "最低上线完成度",
+        "ui": "slider",
+        "default": "50",
+        "unit": "%",
+        "required": true,
+        "when": {
+          "op": "eq",
+          "args": [
+            {
+              "field": "allowExit"
+            },
+            "false"
+          ]
+        },
+        "decimals": 2,
+        "min": "0.01",
+        "max": "100",
+        "step": "0.01"
+      },
+      {
+        "key": "openOnFull",
+        "label": "提前募满立即开放交易",
+        "ui": "switch",
+        "default": "true",
+        "required": true,
+        "when": {
+          "op": "eq",
+          "args": [
+            {
+              "field": "allowExit"
+            },
+            "false"
+          ]
+        }
+      },
+      {
+        "key": "minMint",
+        "label": "最低投入",
+        "ui": "number",
+        "default": "0.00001",
+        "unit": "base",
+        "required": true,
+        "decimals": "baseDecimals",
+        "min": "0"
+      },
+      {
+        "key": "maxPerWalletPct",
+        "label": "单钱包有效本金上限",
+        "ui": "slider",
+        "default": "0",
+        "unit": "%",
+        "hint": "0 表示不限；按募集目标的百分比计算。",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "100",
+        "step": "0.01"
+      }
+    ],
     "sections": [
       {
         "title": "募集与加池",
@@ -51,6 +210,856 @@
           "maxPerWalletPct"
         ]
       }
-    ]
+    ],
+    "rules": [
+      {
+        "field": "targetRaise",
+        "message": "募集目标须大于 0 且在 uint96 范围内",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gt",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "targetRaise"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "targetRaise"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                "79228162514264337593543950335"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "targetPrice",
+        "message": "发射价须大于 0 且在合约范围内",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gt",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "targetPrice"
+                    },
+                    18
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "targetPrice"
+                    },
+                    18
+                  ]
+                },
+                "1000000000000000000000000000000000000"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "startWeight",
+        "message": "初始倍率不得小于最终倍率",
+        "assert": {
+          "op": "gte",
+          "args": [
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "startWeight"
+                },
+                18
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "endWeight"
+                },
+                18
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "minMint",
+        "message": "最低投入须大于 0 且不超过募集目标",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gt",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "minMint"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "minMint"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                },
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "targetRaise"
+                    },
+                    {
+                      "context": "baseDecimals"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "deadline",
+        "message": "请选择未来截止时间",
+        "assert": {
+          "op": "gt",
+          "args": [
+            {
+              "op": "time",
+              "args": [
+                {
+                  "field": "deadline"
+                }
+              ]
+            },
+            {
+              "context": "now"
+            }
+          ]
+        },
+        "when": {
+          "op": "not",
+          "args": [
+            {
+              "op": "eq",
+              "args": [
+                {
+                  "field": "allowExit"
+                },
+                "true"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "targetRaise",
+        "message": "总供应量不足以覆盖参与份额及初始流动性",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "add",
+                  "args": [
+                    {
+                      "op": "div",
+                      "args": [
+                        {
+                          "op": "mul",
+                          "args": [
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "targetRaise"
+                                },
+                                {
+                                  "context": "baseDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "pow10",
+                              "args": [
+                                {
+                                  "context": "tokenDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "startWeight"
+                                },
+                                18
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "mul",
+                          "args": [
+                            {
+                              "op": "pow10",
+                              "args": [
+                                {
+                                  "context": "baseDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "targetPrice"
+                                },
+                                18
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "div",
+                      "args": [
+                        {
+                          "op": "mul",
+                          "args": [
+                            {
+                              "op": "div",
+                              "args": [
+                                {
+                                  "op": "mul",
+                                  "args": [
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "targetRaise"
+                                        },
+                                        {
+                                          "context": "baseDecimals"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "lpRatio"
+                                        },
+                                        2
+                                      ]
+                                    }
+                                  ]
+                                },
+                                10000
+                              ]
+                            },
+                            {
+                              "op": "pow10",
+                              "args": [
+                                {
+                                  "context": "tokenDecimals"
+                                }
+                              ]
+                            },
+                            "1000000000000000000"
+                          ]
+                        },
+                        {
+                          "op": "mul",
+                          "args": [
+                            {
+                              "op": "pow10",
+                              "args": [
+                                {
+                                  "context": "baseDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "targetPrice"
+                                },
+                                18
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "context": "supply"
+                }
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "add",
+                  "args": [
+                    {
+                      "op": "div",
+                      "args": [
+                        {
+                          "op": "mul",
+                          "args": [
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "targetRaise"
+                                },
+                                {
+                                  "context": "baseDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "pow10",
+                              "args": [
+                                {
+                                  "context": "tokenDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "startWeight"
+                                },
+                                18
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "mul",
+                          "args": [
+                            {
+                              "op": "pow10",
+                              "args": [
+                                {
+                                  "context": "baseDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "targetPrice"
+                                },
+                                18
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "div",
+                      "args": [
+                        {
+                          "op": "mul",
+                          "args": [
+                            {
+                              "op": "div",
+                              "args": [
+                                {
+                                  "op": "mul",
+                                  "args": [
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "targetRaise"
+                                        },
+                                        {
+                                          "context": "baseDecimals"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "op": "units",
+                                      "args": [
+                                        {
+                                          "field": "lpRatio"
+                                        },
+                                        2
+                                      ]
+                                    }
+                                  ]
+                                },
+                                10000
+                              ]
+                            },
+                            {
+                              "op": "pow10",
+                              "args": [
+                                {
+                                  "context": "tokenDecimals"
+                                }
+                              ]
+                            },
+                            "1000000000000000000"
+                          ]
+                        },
+                        {
+                          "op": "mul",
+                          "args": [
+                            {
+                              "op": "pow10",
+                              "args": [
+                                {
+                                  "context": "baseDecimals"
+                                }
+                              ]
+                            },
+                            {
+                              "op": "units",
+                              "args": [
+                                {
+                                  "field": "targetPrice"
+                                },
+                                18
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "5192296858534827628530496329220095"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "minMint",
+        "message": "最低投入对应的代币数量不足最小精度",
+        "assert": {
+          "op": "gt",
+          "args": [
+            {
+              "op": "div",
+              "args": [
+                {
+                  "op": "mul",
+                  "args": [
+                    {
+                      "op": "units",
+                      "args": [
+                        {
+                          "field": "minMint"
+                        },
+                        {
+                          "context": "baseDecimals"
+                        }
+                      ]
+                    },
+                    {
+                      "op": "pow10",
+                      "args": [
+                        {
+                          "context": "tokenDecimals"
+                        }
+                      ]
+                    },
+                    {
+                      "op": "units",
+                      "args": [
+                        {
+                          "field": "endWeight"
+                        },
+                        18
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "mul",
+                  "args": [
+                    {
+                      "op": "pow10",
+                      "args": [
+                        {
+                          "context": "baseDecimals"
+                        }
+                      ]
+                    },
+                    {
+                      "op": "units",
+                      "args": [
+                        {
+                          "field": "targetPrice"
+                        },
+                        18
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            0
+          ]
+        }
+      }
+    ],
+    "encoding": {
+      "parameters": [
+        {
+          "type": "address",
+          "name": "recipient"
+        },
+        {
+          "type": "string",
+          "name": "uri"
+        },
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "uint64",
+              "name": "deadline"
+            },
+            {
+              "type": "bool",
+              "name": "nativePayment"
+            },
+            {
+              "type": "bool",
+              "name": "allowExit"
+            },
+            {
+              "type": "bool",
+              "name": "openOnFull"
+            },
+            {
+              "type": "uint256",
+              "name": "targetPrice"
+            },
+            {
+              "type": "uint256",
+              "name": "targetRaise"
+            },
+            {
+              "type": "uint256",
+              "name": "softCap"
+            },
+            {
+              "type": "uint256",
+              "name": "startWeight"
+            },
+            {
+              "type": "uint256",
+              "name": "endWeight"
+            },
+            {
+              "type": "uint256",
+              "name": "lpBps"
+            },
+            {
+              "type": "uint256",
+              "name": "minMint"
+            },
+            {
+              "type": "uint256",
+              "name": "maxPerWalletBps"
+            }
+          ]
+        }
+      ],
+      "values": [
+        {
+          "op": "address",
+          "args": [
+            {
+              "op": "if",
+              "args": [
+                {
+                  "op": "eq",
+                  "args": [
+                    {
+                      "field": "projectRecipient"
+                    },
+                    ""
+                  ]
+                },
+                {
+                  "context": "creator"
+                },
+                {
+                  "field": "projectRecipient"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "context": "metadataUri"
+        },
+        {
+          "op": "tuple",
+          "args": [
+            {
+              "op": "if",
+              "args": [
+                {
+                  "op": "eq",
+                  "args": [
+                    {
+                      "field": "allowExit"
+                    },
+                    "true"
+                  ]
+                },
+                "0",
+                {
+                  "op": "time",
+                  "args": [
+                    {
+                      "field": "deadline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "context": "nativePayment"
+            },
+            {
+              "op": "eq",
+              "args": [
+                {
+                  "field": "allowExit"
+                },
+                "true"
+              ]
+            },
+            {
+              "op": "or",
+              "args": [
+                {
+                  "op": "eq",
+                  "args": [
+                    {
+                      "field": "allowExit"
+                    },
+                    "true"
+                  ]
+                },
+                {
+                  "op": "eq",
+                  "args": [
+                    {
+                      "field": "openOnFull"
+                    },
+                    "true"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "targetPrice"
+                },
+                18
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "targetRaise"
+                },
+                {
+                  "context": "baseDecimals"
+                }
+              ]
+            },
+            {
+              "op": "if",
+              "args": [
+                {
+                  "op": "eq",
+                  "args": [
+                    {
+                      "field": "allowExit"
+                    },
+                    "true"
+                  ]
+                },
+                "0",
+                {
+                  "op": "div",
+                  "args": [
+                    {
+                      "op": "mul",
+                      "args": [
+                        {
+                          "op": "units",
+                          "args": [
+                            {
+                              "field": "targetRaise"
+                            },
+                            {
+                              "context": "baseDecimals"
+                            }
+                          ]
+                        },
+                        {
+                          "op": "units",
+                          "args": [
+                            {
+                              "field": "softCap"
+                            },
+                            2
+                          ]
+                        }
+                      ]
+                    },
+                    10000
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "startWeight"
+                },
+                18
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "endWeight"
+                },
+                18
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "lpRatio"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "minMint"
+                },
+                {
+                  "context": "baseDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "maxPerWalletPct"
+                },
+                2
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "curve": {
+      "ui": "fundraisingCurve",
+      "strategy": "linear-multiplier-v1",
+      "fields": {
+        "target": "targetRaise",
+        "price": "targetPrice",
+        "start": "startWeight",
+        "end": "endWeight",
+        "minimum": "minMint",
+        "softCap": "softCap",
+        "allowExit": "allowExit",
+        "deadline": "deadline"
+      }
+    }
   }
 }

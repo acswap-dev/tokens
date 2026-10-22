@@ -17,7 +17,182 @@
   ],
   "registrations": [],
   "configuration": {
-    "version": 1,
+    "version": 2,
+    "contract": {
+      "apiVersion": 1,
+      "configSchema": "0xfb3fcf2c86b25c6a69f16e707f06ea48f6a256ad884a3eb14b8e85b736e14726",
+      "marker": 2
+    },
+    "fields": [
+      {
+        "key": "marketing",
+        "label": "营销",
+        "ui": "slider",
+        "default": "0",
+        "unit": "%",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "100",
+        "step": "0.01"
+      },
+      {
+        "key": "burn",
+        "label": "销毁",
+        "ui": "slider",
+        "default": "0",
+        "unit": "%",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "100",
+        "step": "0.01"
+      },
+      {
+        "key": "liquidity",
+        "label": "自动加池",
+        "ui": "slider",
+        "default": "0",
+        "unit": "%",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "100",
+        "step": "0.01"
+      },
+      {
+        "key": "dividend",
+        "label": "持币分红",
+        "ui": "slider",
+        "default": "100",
+        "unit": "%",
+        "required": true,
+        "decimals": 2,
+        "min": "0",
+        "max": "100",
+        "step": "0.01"
+      },
+      {
+        "key": "marketingRecipient",
+        "label": "营销收款地址",
+        "ui": "address",
+        "default": "",
+        "hint": "留空使用创建者。",
+        "required": false
+      },
+      {
+        "key": "customReward",
+        "label": "使用其他分红币",
+        "ui": "switch",
+        "default": "false",
+        "hint": "关闭时使用募集币；其他分红币需要有效的兑换路径。",
+        "required": true
+      },
+      {
+        "key": "rewardToken",
+        "label": "分红币合约地址",
+        "ui": "token",
+        "default": "",
+        "required": true,
+        "when": {
+          "op": "eq",
+          "args": [
+            {
+              "field": "customReward"
+            },
+            "true"
+          ]
+        }
+      },
+      {
+        "key": "rewardPath",
+        "label": "完整兑换路径",
+        "ui": "array",
+        "default": "",
+        "hint": "用空格分隔：募集币 → 中间币（可选）→ 分红币；不同币种必填，同币种可留空。",
+        "required": false,
+        "when": {
+          "op": "eq",
+          "args": [
+            {
+              "field": "customReward"
+            },
+            "true"
+          ]
+        }
+      },
+      {
+        "key": "minHold",
+        "label": "参与分红的最低持仓",
+        "ui": "number",
+        "default": "1",
+        "unit": "token",
+        "required": true,
+        "decimals": "tokenDecimals",
+        "min": "0"
+      },
+      {
+        "key": "minDistribution",
+        "label": "最低领取金额",
+        "ui": "number",
+        "default": "0",
+        "unit": "reward",
+        "required": true,
+        "decimals": "rewardDecimals",
+        "min": "0"
+      },
+      {
+        "key": "claimInterval",
+        "label": "领取间隔",
+        "ui": "number",
+        "default": "1800",
+        "unit": "秒",
+        "required": true,
+        "decimals": 0,
+        "min": "0"
+      },
+      {
+        "key": "slippage",
+        "label": "自动处理滑点上限",
+        "ui": "slider",
+        "default": "3",
+        "unit": "%",
+        "hint": "用于税收兑换与补池，不是前期参与滑点。",
+        "required": true,
+        "decimals": 2,
+        "min": "0.01",
+        "max": "99.99",
+        "step": "0.01"
+      },
+      {
+        "key": "swapThreshold",
+        "label": "自动处理门槛",
+        "ui": "number",
+        "default": "100",
+        "unit": "token",
+        "required": true,
+        "decimals": "tokenDecimals",
+        "min": "0"
+      },
+      {
+        "key": "maxSwapAmount",
+        "label": "单次最大处理量",
+        "ui": "number",
+        "default": "1000",
+        "unit": "token",
+        "required": true,
+        "decimals": "tokenDecimals",
+        "min": "0"
+      },
+      {
+        "key": "vaultProjectRecipient",
+        "label": "无持币份额时的奖励收款地址",
+        "ui": "address",
+        "default": "",
+        "hint": "留空使用创建者。该地址由金库独立配置，不跟随募集模型切换。",
+        "required": false
+      }
+    ],
     "sections": [
       {
         "title": "税收分配",
@@ -55,6 +230,633 @@
           "vaultProjectRecipient"
         ]
       }
-    ]
+    ],
+    "rules": [
+      {
+        "field": "dividend",
+        "message": "四项税收分配合计必须为 100%",
+        "assert": {
+          "op": "eq",
+          "args": [
+            {
+              "op": "add",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "marketing"
+                    },
+                    2
+                  ]
+                },
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "burn"
+                    },
+                    2
+                  ]
+                },
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "liquidity"
+                    },
+                    2
+                  ]
+                },
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "dividend"
+                    },
+                    2
+                  ]
+                }
+              ]
+            },
+            10000
+          ]
+        }
+      },
+      {
+        "field": "claimInterval",
+        "message": "领取间隔须在 0～31536000 秒内",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gte",
+              "args": [
+                {
+                  "op": "integer",
+                  "args": [
+                    {
+                      "field": "claimInterval"
+                    }
+                  ]
+                },
+                0
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "integer",
+                  "args": [
+                    {
+                      "field": "claimInterval"
+                    }
+                  ]
+                },
+                31536000
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "rewardPath",
+        "message": "兑换路径须为 2～5 个不重复地址，以募集币开始、奖励币结束",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gte",
+              "args": [
+                {
+                  "op": "length",
+                  "args": [
+                    {
+                      "op": "addresses",
+                      "args": [
+                        {
+                          "field": "rewardPath"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                2
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "length",
+                  "args": [
+                    {
+                      "op": "addresses",
+                      "args": [
+                        {
+                          "field": "rewardPath"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                5
+              ]
+            },
+            {
+              "op": "eq",
+              "args": [
+                {
+                  "op": "first",
+                  "args": [
+                    {
+                      "op": "addresses",
+                      "args": [
+                        {
+                          "field": "rewardPath"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "context": "baseToken"
+                }
+              ]
+            },
+            {
+              "op": "eq",
+              "args": [
+                {
+                  "op": "last",
+                  "args": [
+                    {
+                      "op": "addresses",
+                      "args": [
+                        {
+                          "field": "rewardPath"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "if",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "args": [
+                        {
+                          "field": "customReward"
+                        },
+                        "true"
+                      ]
+                    },
+                    {
+                      "op": "address",
+                      "args": [
+                        {
+                          "field": "rewardToken"
+                        }
+                      ]
+                    },
+                    {
+                      "context": "baseToken"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "unique",
+              "args": [
+                {
+                  "op": "addresses",
+                  "args": [
+                    {
+                      "field": "rewardPath"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "when": {
+          "op": "not",
+          "args": [
+            {
+              "op": "eq",
+              "args": [
+                {
+                  "op": "if",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "args": [
+                        {
+                          "field": "customReward"
+                        },
+                        "true"
+                      ]
+                    },
+                    {
+                      "op": "address",
+                      "args": [
+                        {
+                          "field": "rewardToken"
+                        }
+                      ]
+                    },
+                    {
+                      "context": "baseToken"
+                    }
+                  ]
+                },
+                {
+                  "context": "baseToken"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "field": "swapThreshold",
+        "message": "处理门槛须大于 0",
+        "assert": {
+          "op": "gt",
+          "args": [
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "swapThreshold"
+                },
+                {
+                  "context": "tokenDecimals"
+                }
+              ]
+            },
+            0
+          ]
+        }
+      },
+      {
+        "field": "maxSwapAmount",
+        "message": "单次最大处理量须不低于门槛且在 uint112 范围内",
+        "assert": {
+          "op": "and",
+          "args": [
+            {
+              "op": "gte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "maxSwapAmount"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                },
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "swapThreshold"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "lte",
+              "args": [
+                {
+                  "op": "units",
+                  "args": [
+                    {
+                      "field": "maxSwapAmount"
+                    },
+                    {
+                      "context": "tokenDecimals"
+                    }
+                  ]
+                },
+                "5192296858534827628530496329220095"
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "encoding": {
+      "parameters": [
+        {
+          "type": "tuple",
+          "components": [
+            {
+              "type": "address",
+              "name": "rewardToken"
+            },
+            {
+              "type": "address",
+              "name": "marketingRecipient"
+            },
+            {
+              "type": "address",
+              "name": "projectRecipient"
+            },
+            {
+              "type": "uint16",
+              "name": "marketingBps"
+            },
+            {
+              "type": "uint16",
+              "name": "burnBps"
+            },
+            {
+              "type": "uint16",
+              "name": "liquidityBps"
+            },
+            {
+              "type": "uint16",
+              "name": "dividendBps"
+            },
+            {
+              "type": "uint16",
+              "name": "slippageBps"
+            },
+            {
+              "type": "uint256",
+              "name": "minHold"
+            },
+            {
+              "type": "uint256",
+              "name": "minDistribution"
+            },
+            {
+              "type": "uint256",
+              "name": "claimInterval"
+            },
+            {
+              "type": "uint256",
+              "name": "swapThreshold"
+            },
+            {
+              "type": "uint256",
+              "name": "maxSwapAmount"
+            },
+            {
+              "type": "address[]",
+              "name": "rewardPath"
+            }
+          ]
+        }
+      ],
+      "values": [
+        {
+          "op": "tuple",
+          "args": [
+            {
+              "op": "if",
+              "args": [
+                {
+                  "op": "eq",
+                  "args": [
+                    {
+                      "field": "customReward"
+                    },
+                    "true"
+                  ]
+                },
+                {
+                  "op": "address",
+                  "args": [
+                    {
+                      "field": "rewardToken"
+                    }
+                  ]
+                },
+                {
+                  "context": "baseToken"
+                }
+              ]
+            },
+            {
+              "op": "address",
+              "args": [
+                {
+                  "op": "if",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "args": [
+                        {
+                          "field": "marketingRecipient"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "context": "creator"
+                    },
+                    {
+                      "field": "marketingRecipient"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "address",
+              "args": [
+                {
+                  "op": "if",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "args": [
+                        {
+                          "field": "vaultProjectRecipient"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "context": "creator"
+                    },
+                    {
+                      "field": "vaultProjectRecipient"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "marketing"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "burn"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "liquidity"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "dividend"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "slippage"
+                },
+                2
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "minHold"
+                },
+                {
+                  "context": "tokenDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "minDistribution"
+                },
+                {
+                  "context": "rewardDecimals"
+                }
+              ]
+            },
+            {
+              "op": "integer",
+              "args": [
+                {
+                  "field": "claimInterval"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "swapThreshold"
+                },
+                {
+                  "context": "tokenDecimals"
+                }
+              ]
+            },
+            {
+              "op": "units",
+              "args": [
+                {
+                  "field": "maxSwapAmount"
+                },
+                {
+                  "context": "tokenDecimals"
+                }
+              ]
+            },
+            {
+              "op": "if",
+              "args": [
+                {
+                  "op": "not",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "args": [
+                        {
+                          "op": "if",
+                          "args": [
+                            {
+                              "op": "eq",
+                              "args": [
+                                {
+                                  "field": "customReward"
+                                },
+                                "true"
+                              ]
+                            },
+                            {
+                              "op": "address",
+                              "args": [
+                                {
+                                  "field": "rewardToken"
+                                }
+                              ]
+                            },
+                            {
+                              "context": "baseToken"
+                            }
+                          ]
+                        },
+                        {
+                          "context": "baseToken"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "op": "addresses",
+                  "args": [
+                    {
+                      "field": "rewardPath"
+                    }
+                  ]
+                },
+                {
+                  "op": "addresses",
+                  "args": [
+                    ""
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
   }
 }
